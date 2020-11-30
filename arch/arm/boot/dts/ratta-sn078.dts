@@ -1,0 +1,142 @@
+/*
+ * Copyright (C) 2019 Ratta , Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+#include "ratta-sn100.dts"
+
+&i2c1 {
+	pmic: pfuze100@08 {
+			regulators {
+			vgen5_reg: vgen5 {
+				//regulator-min-microvolt = <1800000>;
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-always-on;
+				};
+
+			vgen6_reg: vgen6 {
+				//regulator-min-microvolt = <1800000>;
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-always-on;
+				};
+			};
+	      };
+};
+
+&i2c3 {
+	cap_touch_atmel {
+		reg = <0x4b>;
+		atmel,cfg_name="maxtouch_sn078.cfg";
+	};
+
+	tsc@24 {
+		compatible = "cy,cyttsp5_i2c_adapter";
+		reg = <0x24>;
+		cy,adapter_id = "cyttsp5_i2c_adapter";
+
+		pinctrl-names = "default","sleep"; 
+		pinctrl-0 = <&pinctrl_ts>;
+		pinctrl-1 = <&pinctrl_ts_sleep>;
+		cy,core {
+			cy,name = "cyttsp5_core";
+
+			cy,irq_gpio = <114>;
+			cy,rst_gpio = <115>;
+			cy,pwr_en_gpio = <121>;
+			cy,hid_desc_register = <1>;
+			/*CY_CORE_FLAG_RESTORE_PARAMETERS */
+			cy,flags = <4>;    //  if    flag| 0x02 == true  // sleep  will poweroff 
+			/* CY_CORE_EWG_NONE */
+			cy,easy_wakeup_gesture = <0>;
+			cy,btn_keys = <172 /* KEY_HOMEPAGE */
+					   /* previously was KEY_HOME, new Android versions use KEY_HOMEPAGE */
+				       139 /* KEY_MENU */
+				       158 /* KEY_BACK */
+				       217 /* KEY_SEARCH */
+				       114 /* KEY_VOLUMEDOWN */
+				       115 /* KEY_VOLUMEUP */
+				       212 /* KEY_CAMERA */
+				       116>; /* KEY_POWER */
+			cy,btn_keys-tag = <0>;
+
+			cy,mt {
+				cy,name = "cyttsp5_mt";
+
+				cy,inp_dev_name = "cyttsp5_mt";
+				/* CY_MT_FLAG_FLIP | CY_MT_FLAG_INV_X | CY_MT_FLAG_INV_Y */
+				cy,flags = <0xF8>;  
+				cy,abs =
+					/* ABS_MT_POSITION_X, CY_ABS_MIN_X, CY_ABS_MAX_X, 0, 0 */
+					<0x35 0 880 0 0
+					/* ABS_MT_POSITION_Y, CY_ABS_MIN_Y, CY_ABS_MAX_Y, 0, 0 */
+					0x36 0 1280 0 0
+					/* ABS_MT_PRESSURE, CY_ABS_MIN_P, CY_ABS_MAX_P, 0, 0 */
+					0x3a 0 255 0 0
+					/* CY_IGNORE_VALUE, CY_ABS_MIN_W, CY_ABS_MAX_W, 0, 0 */
+					0xffff 0 255 0 0
+					/* ABS_MT_TRACKING_ID, CY_ABS_MIN_T, CY_ABS_MAX_T, 0, 0 */
+					0x39 0 15 0 0
+					/* ABS_MT_TOUCH_MAJOR, 0, 255, 0, 0 */
+					0x30 0 255 0 0
+					/* ABS_MT_TOUCH_MINOR, 0, 255, 0, 0 */
+					0x31 0 255 0 0
+					/* ABS_MT_ORIENTATION, -127, 127, 0, 0 */
+					0x34 0xffffff81 127 0 0
+					/* ABS_MT_TOOL_TYPE, 0, MT_TOOL_MAX, 0, 0 */
+					0x37 0 1 0 0
+					/* ABS_MT_DISTANCE, 0, 255, 0, 0 */
+					0x3b 0 255 0 0>;
+
+				cy,vkeys_x = <1349>;
+				cy,vkeys_y = <1872>;
+
+				cy,virtual_keys = /* KeyCode CenterX CenterY Width Height */
+					/* KEY_BACK */
+					<158 1360 90 160 180
+					/* KEY_MENU */
+					139 1360 270 160 180
+					/* KEY_HOMEPAGE */
+					172 1360 450 160 180
+					/* KEY SEARCH */
+					217 1360 630 160 180>;
+			};			
+		};
+	};	
+
+};
+
+&iomuxc {
+	imx6sl-evk {
+		
+		pinctrl_ts: ts_grp-0 {
+			fsl,pins = <
+				MX6SL_PAD_FEC_RX_ER__GPIO4_IO19  		0x110b0
+				MX6SL_PAD_FEC_RXD1__GPIO4_IO18  		0x110b0	
+				MX6SL_PAD_FEC_CRS_DV__GPIO4_IO25 		0x110b0	
+			>;
+		};
+
+		pinctrl_ts_sleep: ts_grp-1 {
+			fsl,pins = <
+				MX6SL_PAD_FEC_RX_ER__GPIO4_IO19 		0x400840
+				MX6SL_PAD_FEC_RXD1__GPIO4_IO18			0x400840 
+			>;
+		};
+
+		pinctrl_uart1: uart1grp {
+		       fsl,pins = <
+			       MX6SL_PAD_UART1_RXD__UART1_RX_DATA		0x4110B0
+			       MX6SL_PAD_UART1_TXD__UART1_TX_DATA		0x4110B0
+		       >;
+       		};
+       };
+};
+
+&hardware {
+	id = "sn078";
+};
